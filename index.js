@@ -21,7 +21,7 @@ app.use(
 );
 
 //启动server并监听再80端口
-var server = app.listen(80, function() {
+var server = app.listen(8000, function() {
   console.log("应用实例启动成功!");
 });
 
