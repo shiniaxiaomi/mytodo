@@ -40,7 +40,13 @@ function addTodo() {
   if (title.value == "") {
     alert("内容不能为空");
   } else {
-    var todo = { title: title.value, done: false };
+    var todo = {
+      id: Math.random()
+        .toString()
+        .substr(3, 15),
+      title: title.value,
+      done: false
+    };
     todoListData.push(todo);
     form.reset();
     //保存数据
@@ -121,8 +127,8 @@ function reloadHtml(data) {
           "<li draggable='true'><input type='checkbox' onchange='finished(" +
           i +
           ",\"done\",false)' checked='checked' />" +
-          "<p id='p-" +
-          i +
+          "<p id='" +
+          data[i].id +
           "' onclick='edit(" +
           i +
           ")'>" +
@@ -137,8 +143,8 @@ function reloadHtml(data) {
           "<li draggable='true'><input type='checkbox' onchange='finished(" +
           i +
           ',"done",true)\' />' +
-          "<p id='p-" +
-          i +
+          "<p id='" +
+          data[i].id +
           "' onclick='edit(" +
           i +
           ")'>" +
@@ -170,25 +176,25 @@ function reloadHtml(data) {
 }
 
 //保存拖拽后的数据
-function saveSort() {
-  var todolist = document.getElementById("todolist");
-  var donelist = document.getElementById("donelist");
-  var ts = todolist.getElementsByTagName("p");
-  var ds = donelist.getElementsByTagName("p");
-  var dataBuff = [];
-  for (i = 0; i < ts.length; i++) {
-    var todo = { title: ts[i].innerHTML, done: false };
-    dataBuff.unshift(todo);
-  }
-  for (i = 0; i < ds.length; i++) {
-    var todo = { title: ds[i].innerHTML, done: true };
-    dataBuff.unshift(todo);
-  }
-  //保存数据
-  saveData(dataBuff, function() {
-    reloadHtml(dataBuff);
-  });
-}
+// function saveSort() {
+//   var todolist = document.getElementById("todolist");
+//   var donelist = document.getElementById("donelist");
+//   var ts = todolist.getElementsByTagName("p");
+//   var ds = donelist.getElementsByTagName("p");
+//   var dataBuff = [];
+//   for (i = 0; i < ts.length; i++) {
+//     var todo = { title: ts[i].innerHTML, done: false };
+//     dataBuff.unshift(todo);
+//   }
+//   for (i = 0; i < ds.length; i++) {
+//     var todo = { title: ds[i].innerHTML, done: true };
+//     dataBuff.unshift(todo);
+//   }
+//   //保存数据
+//   saveData(dataBuff, function() {
+//     reloadHtml(dataBuff);
+//   });
+// }
 
 // 清空已完成的任务
 function clearFinished() {
@@ -267,9 +273,37 @@ function handleDrop(e) {
     e.stopPropagation();
   }
   if (dragSrcEl != this) {
-    dragSrcEl.innerHTML = this.innerHTML;
-    this.innerHTML = e.dataTransfer.getData("text/html");
+    var srcId = dragSrcEl.children[1].id;
+    var targetId = this.children[1].id;
+
+    var buffList = [];
+    var srcIndexBuff = 0;
+    var targetIndexBuff = 0;
+
+    //找出src和target的Id
+    for (var i = 0; i < todoListData.length; i++) {
+      if (todoListData[i].id == srcId) {
+        srcIndexBuff = i;
+      } else if (todoListData[i].id == targetId) {
+        targetIndexBuff = i;
+      }
+    }
+
+    for (var i = 0; i < todoListData.length; i++) {
+      if (i == srcIndexBuff) {
+        continue;
+      } else if (i == targetIndexBuff) {
+        buffList.push(todoListData[srcIndexBuff]);
+        buffList.push(todoListData[targetIndexBuff]);
+      } else {
+        buffList.push(todoListData[i]);
+      }
+    }
+    todoListData = buffList;
+    //保存数据
+    saveData(todoListData, function() {
+      reloadHtml(todoListData);
+    });
   }
-  saveSort(); //拖拽完成后将数据进行保存
   return false;
 }
