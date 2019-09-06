@@ -71,7 +71,7 @@ window.onload = function() {
   form = document.getElementById("form");
 
   //先尝试自动登入
-  ajaxPostUtil("/login", { password: "" }, function(data) {
+  ajaxPostUtil("/autoLogin", { password: "" }, function(data) {
     if (data.code == 1) {
       //获取数据
       getData(function(data) {

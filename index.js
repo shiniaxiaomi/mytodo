@@ -27,6 +27,7 @@ var server = app.listen(8000, function() {
 
 var failed = 0;
 var successed = 1;
+var autoLoginFailed = 2; //自动登入失败
 
 var todoListData = readJson(); //读取json数据
 
@@ -46,6 +47,20 @@ app.post("/login", bodyParser.json(), function(req, res) {
     res.send({ code: successed, data: "登入成功!" });
   } else {
     res.send({ code: failed, data: "密码错误" });
+  }
+});
+
+app.post("/autoLogin", bodyParser.json(), function(req, res) {
+  if (req.session.isLogin) {
+    res.send({ code: successed, data: "登入成功!" });
+    return;
+  }
+
+  if (req.body.password == "123456") {
+    req.session.isLogin = true;
+    res.send({ code: successed, data: "登入成功!" });
+  } else {
+    res.send({ code: autoLoginFailed, data: "密码错误" });
   }
 });
 
