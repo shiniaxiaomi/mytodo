@@ -1,160 +1,90 @@
-function clear(){
-	localStorage.clear();
-	load();
+var express = require("express"); //导入express模块
+const path = require("path");
+var bodyParser = require("body-parser");
+// 创建 application/x-www-form-urlencoded 编码解析
+var urlencodedParser = bodyParser.urlencoded({ extended: false });
+
+
+
+const fs = require("fs");
+var app = express(); //获取app对象
+
+//设置静态资源路径(将html生成路径设置为静态资源路径)
+app.use("", express.static("./"));
+
+
+//启动server并监听再80端口
+var server = app.listen(80, function() {
+    console.log("应用实例启动成功!");
+});
+
+var failed=0;
+var successed=1;
+
+var todoListData=readJson();//读取json数据
+// var isLogin=false;
+// var time=undefined;//是否登入的定时器
+
+//返回首页
+app.get("/", function(req, res) {
+    res.sendFile(path.join(__dirname, "todo.html"));
+});
+
+app.post("/login",bodyParser.json(), function(req, res) {
+   
+    if(req.body.password=="123456"){
+        req.session.isLogin = true;
+
+        res.send({'code':successed,"data":'登入成功!'});
+    }else{
+        res.send({'code':failed,"data":'密码错误'});
+    }
+    
+});
+
+//获取todoList的数据
+app.get("/getTodoList", function(req, res) {
+    // if(req.session.isLogin==undefined){
+    //     res.send({code:failed,data:"请先登入"});
+    //     return;
+    // }
+    res.send(todoListData);
+});
+
+//保存todoList的数据
+app.post("/saveTodoList",bodyParser.json(), function(req, res) {
+    // if(req.session.isLogin==undefined){
+    //     res.send({code:failed,data:"请先登入"});
+    //     return;
+    // }
+
+    todoListData=req.body;
+    writeJson(todoListData);//保存到文件中
+    res.send({'code':successed,"data":'保存成功'});
+});
+
+//读取json数据
+function readJson(){
+    var targetPath=path.join(__dirname,"todo.json");
+     //现将json文件读出来
+     var data=fs.readFileSync(targetPath);
+     var buff = data.toString();//将二进制的数据转换为字符串
+    if(buff!=""){
+        buff = JSON.parse(buff);//将字符串转换为json对象
+    }else{
+        buff=[];
+    }
+    return buff;
 }
 
-function postaction(){
-	var title = document.getElementById("title");
-	if(title.value == "") {
-		alert("内容不能为空");
-	}else{
-		var data=loadData();
-		var todo={"title":title.value,"done":false};
-		data.push(todo);
-		saveData(data);
-		var form=document.getElementById("form");
-		form.reset();
-		load();
-	}
-}
+//写入json数据
+function writeJson(params){
+    var targetPath=path.join(__dirname,"todo.json");
 
-function loadData(){
-	var collection=localStorage.getItem("todo");
-	if(collection!=null){
-		return JSON.parse(collection);
-	}
-	else return [];
-}
-
-function saveSort(){
-	var todolist=document.getElementById("todolist");
-	var donelist=document.getElementById("donelist");
-	var ts=todolist.getElementsByTagName("p");
-	var ds=donelist.getElementsByTagName("p");
-	var data=[];
-	for(i=0;i<ts.length; i++){
-		var todo={"title":ts[i].innerHTML,"done":false};
-		data.unshift(todo);
-	}
-	for(i=0;i<ds.length; i++){
-		var todo={"title":ds[i].innerHTML,"done":true};
-		data.unshift(todo);
-	}
-	saveData(data);
-}
-
-function saveData(data){
-	localStorage.setItem("todo",JSON.stringify(data));
-}
-
-function remove(i){
-	var data=loadData();
-	var todo=data.splice(i,1)[0];
-	saveData(data);
-	load();
-}
-
-function update(i,field,value){
-	var data = loadData();
-	var todo = data.splice(i,1)[0];
-	todo[field] = value;
-	data.splice(i,0,todo);
-	saveData(data);
-	load();
-}
-
-function edit(i)
-{
-	load();
-	var p = document.getElementById("p-"+i);
-	title = p.innerHTML;
-	p.innerHTML="<input id='input-"+i+"' value='"+title+"' />";
-	var input = document.getElementById("input-"+i);
-	input.setSelectionRange(0,input.value.length);
-	input.focus();
-	input.onblur =function(){
-		if(input.value.length == 0){
-			p.innerHTML = title;
-			alert("内容不能为空");
-		}
-		else{
-			update(i,"title",input.value);
-		}
-	};
-}
-
-function load(){
-	var todolist=document.getElementById("todolist");
-	var donelist=document.getElementById("donelist");
-	var collection=localStorage.getItem("todo");
-	if(collection!=null){
-		var data=JSON.parse(collection);
-		var todoCount=0;
-		var doneCount=0;
-		var todoString="";
-		var doneString="";
-		for (var i = data.length - 1; i >= 0; i--) {
-			if(data[i].done){
-				doneString+="<li draggable='true'><input type='checkbox' onchange='update("+i+",\"done\",false)' checked='checked' />"
-				+"<p id='p-"+i+"' onclick='edit("+i+")'>"+data[i].title+"</p>"
-				+"<a href='javascript:remove("+i+")'>-</a></li>";
-				doneCount++;
-			}
-			else{
-				todoString+="<li draggable='true'><input type='checkbox' onchange='update("+i+",\"done\",true)' />"
-				+"<p id='p-"+i+"' onclick='edit("+i+")'>"+data[i].title+"</p>"
-				+"<a href='javascript:remove("+i+")'>-</a></li>";
-				todoCount++;
-			}
-		};
-		todocount.innerHTML=todoCount;
-		todolist.innerHTML=todoString;
-		donecount.innerHTML=doneCount;
-		donelist.innerHTML=doneString;
-	}
-	else{
-		todocount.innerHTML=0;
-		todolist.innerHTML="";
-		donecount.innerHTML=0;
-		donelist.innerHTML="";
-	}
-
-	var lis=todolist.querySelectorAll('ol li');
-	[].forEach.call(lis, function(li) {
-		li.addEventListener('dragstart', handleDragStart, false);
-		li.addEventListener('dragover', handleDragOver, false);
-		li.addEventListener('drop', handleDrop, false);
-
-		onmouseout =function(){
-			saveSort();
-		};
-	});		
-}
-
-window.onload=load;
-
-window.addEventListener("storage",load,false);
-
-var dragSrcEl = null;
-function handleDragStart(e) {
-  dragSrcEl = this;
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/html', this.innerHTML);
-}
-function handleDragOver(e) {
-  if (e.preventDefault) {
-    e.preventDefault();
-  }
-  e.dataTransfer.dropEffect = 'move';
-  return false;
-}
-function handleDrop(e) {
-  if (e.stopPropagation) {
-    e.stopPropagation(); 
-  }
-  if (dragSrcEl != this) {
-    dragSrcEl.innerHTML = this.innerHTML;
-    this.innerHTML = e.dataTransfer.getData('text/html');
-  }
-  return false;
+    var str = JSON.stringify(params);//因为nodejs的写入文件只认识字符串或者二进制数，所以把json对象转换成字符串重新写入json文件中
+    fs.writeFile(targetPath,str,function(err){
+        if(err){
+            console.error(err);
+        }
+    })
 }

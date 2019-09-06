@@ -3,14 +3,14 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" /> 
-		<title>ToDoList—最简单的待办事项列表</title>
+		<title>陆英杰的待办事项</title>
 		<meta name="description" content="ToDoList" />
-		<link rel="stylesheet" href="index.css">
+		<link rel="stylesheet" href="todo.css">
 	</head>
 	<body>
 		<header>
 			<section>
-				<form action="javascript:postaction()" id="form">
+				<form action="javascript:addTodo()" id="form">
 					<label for="title">ToDoList</label>
 					<input type="text" id="title" name="title" placeholder="添加ToDo" required="required" autocomplete="off" />
 				</form>
@@ -25,9 +25,9 @@
 			</ul>
 		</section>
 		<footer>
-             陆英杰的清单 <a href="javascript:clear();">清除已完成</a>  <br>
+             陆英杰的清单 <a href="javascript:clearFinished();">清除已完成</a>  <br>
              mytodo.cn
 		</footer>
-		<script type="text/javascript" src="index.js"></script>
+		<script type="text/javascript" src="todo.js"></script>
 	</body>
 </html>
