@@ -19,7 +19,7 @@ function finished(i, field, value) {
 
 //更改一个todo
 function edit(i) {
-  var p = document.getElementById(i);
+  var p = document.getElementById(i.id);
   var buff = prompt("修改内容", p.innerHTML);
   if (buff == null) {
     return;
@@ -41,9 +41,11 @@ function addTodo() {
     alert("内容不能为空");
   } else {
     var todo = {
-      id: Math.random()
-        .toString()
-        .substr(3, 15),
+      id:
+        "p" +
+        Math.random()
+          .toString()
+          .substr(3, 15),
       title: title.value,
       done: false
     };
@@ -71,6 +73,7 @@ var title = undefined;
 var form = undefined;
 var todoListData = []; //todo列表
 var dragSrcEl = null; //拖拽
+var dragSrcElMobile = null;
 
 window.onload = function() {
   title = document.getElementById("title");
@@ -116,6 +119,7 @@ function saveData(params, handleFunction) {
 function reloadHtml(data) {
   var todolist = document.getElementById("todolist");
   var donelist = document.getElementById("donelist");
+
   if (data != undefined && data.length != 0) {
     var todoCount = 0;
     var doneCount = 0;
@@ -124,46 +128,76 @@ function reloadHtml(data) {
 
     var finishedIndex = 1;
     var unFinishedIndex = 1;
+    var li = undefined;
+    var input = undefined;
+    var div = undefined;
+    var p1 = undefined;
+    var p2 = undefined;
+    var a = undefined;
     for (var i = data.length - 1; i >= 0; i--) {
+      li = undefined;
+      input = undefined;
+      div = undefined;
+      p1 = undefined;
+      p2 = undefined;
+      a = undefined;
+
       //已经完成的todo
       if (data[i].done) {
-        doneString +=
-          "<li draggable='true'><input type='checkbox' onchange='finished(" +
-          i +
-          ",\"done\",false)' checked='checked' />" +
-          "<p>" +
-          finishedIndex++ +
-          ". </p>" +
-          "<p id='" +
-          data[i].id +
-          "' onclick='edit(" +
-          data[i].id +
-          ")'>" +
-          data[i].title +
-          "</p>" +
-          "<a href='javascript:remove(" +
-          i +
-          ")'> - </a></li>";
+        li = document.createElement("li");
+        li.setAttribute("draggable", true);
+
+        input = document.createElement("input");
+        input.setAttribute("type", "checkbox");
+        input.setAttribute("onchange", "finished(" + i + ",'done',false)");
+        input.setAttribute("checked", "checked");
+        li.appendChild(input);
+
+        div = document.createElement("div");
+        div.setAttribute("onclick", "edit(" + data[i].id + ")");
+        p1 = document.createElement("p");
+        p1.innerHTML = finishedIndex++ + ". ";
+        p2 = document.createElement("p");
+        p2.setAttribute("id", data[i].id);
+        p2.innerHTML = data[i].title;
+        div.appendChild(p1);
+        div.appendChild(p2);
+        li.appendChild(div);
+
+        a = document.createElement("a");
+        a.setAttribute("href", "javascript:remove(" + i + ")");
+        a.innerHTML = " - ";
+        li.appendChild(a);
+
+        doneString += li.outerHTML;
         doneCount++;
       } else {
         //未完成的todo
-        todoString +=
-          "<li draggable='true'><input type='checkbox' onchange='finished(" +
-          i +
-          ',"done",true)\' />' +
-          "<p>" +
-          unFinishedIndex++ +
-          ". </p>" +
-          "<p id='" +
-          data[i].id +
-          "' onclick='edit(" +
-          data[i].id +
-          ")'>" +
-          data[i].title +
-          "</p>" +
-          "<a href='javascript:remove(" +
-          i +
-          ")'> - </a></li>";
+        li = document.createElement("li");
+        li.setAttribute("draggable", true);
+
+        input = document.createElement("input");
+        input.setAttribute("type", "checkbox");
+        input.setAttribute("onchange", "finished(" + i + ",'done',true)");
+        li.appendChild(input);
+
+        div = document.createElement("div");
+        div.setAttribute("onclick", "edit(" + data[i].id + ")");
+        p1 = document.createElement("p");
+        p1.innerHTML = unFinishedIndex++ + ". ";
+        p2 = document.createElement("p");
+        p2.setAttribute("id", data[i].id);
+        p2.innerHTML = data[i].title;
+        div.appendChild(p1);
+        div.appendChild(p2);
+        li.appendChild(div);
+
+        a = document.createElement("a");
+        a.setAttribute("href", "javascript:remove(" + i + ")");
+        a.innerHTML = " - ";
+        li.appendChild(a);
+
+        todoString += li.outerHTML;
         todoCount++;
       }
     }
@@ -180,9 +214,14 @@ function reloadHtml(data) {
 
   var lis = todolist.querySelectorAll("ol li");
   [].forEach.call(lis, function(li) {
+    //设置pc端拖拽
     li.addEventListener("dragstart", handleDragStart, false);
     li.addEventListener("dragover", handleDragOver, false);
     li.addEventListener("drop", handleDrop, false);
+    //设置移动端拖拽
+    // li.addEventListener("touchmove", handleMove, false);
+    // li.addEventListener("touchstart", handleStart, false);
+    // li.addEventListener("touchend", handleEnd, false);
   });
 }
 
@@ -244,7 +283,7 @@ function ajaxPostUtil(url, dataObj, handleFunction) {
   };
 }
 
-//设置拖拽
+//设置PC端拖拽
 function handleDragStart(e) {
   dragSrcEl = this;
   e.dataTransfer.effectAllowed = "move";
@@ -263,8 +302,8 @@ function handleDrop(e) {
     e.stopPropagation();
   }
   if (dragSrcEl != this) {
-    var srcId = dragSrcEl.children[2].id;
-    var targetId = this.children[2].id;
+    var srcId = dragSrcEl.children[1].children[1].id;
+    var targetId = this.children[1].children[1].id;
 
     var buffList = [];
     var srcIndexBuff = 0;
