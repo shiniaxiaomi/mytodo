@@ -19,7 +19,7 @@ function finished(i, field, value) {
 
 //更改一个todo
 function edit(i) {
-  var p = document.getElementById("p-" + i);
+  var p = document.getElementById(i);
   var buff = prompt("修改内容", p.innerHTML);
   if (buff == null) {
     return;
@@ -130,13 +130,13 @@ function reloadHtml(data) {
           "<p id='" +
           data[i].id +
           "' onclick='edit(" +
-          i +
+          data[i].id +
           ")'>" +
           data[i].title +
           "</p>" +
           "<a href='javascript:remove(" +
           i +
-          ")'>-</a></li>";
+          ")'> - </a></li>";
         doneCount++;
       } else {
         todoString +=
@@ -146,13 +146,13 @@ function reloadHtml(data) {
           "<p id='" +
           data[i].id +
           "' onclick='edit(" +
-          i +
+          data[i].id +
           ")'>" +
           data[i].title +
           "</p>" +
           "<a href='javascript:remove(" +
           i +
-          ")'>-</a></li>";
+          ")'> - </a></li>";
         todoCount++;
       }
     }
@@ -174,27 +174,6 @@ function reloadHtml(data) {
     li.addEventListener("drop", handleDrop, false);
   });
 }
-
-//保存拖拽后的数据
-// function saveSort() {
-//   var todolist = document.getElementById("todolist");
-//   var donelist = document.getElementById("donelist");
-//   var ts = todolist.getElementsByTagName("p");
-//   var ds = donelist.getElementsByTagName("p");
-//   var dataBuff = [];
-//   for (i = 0; i < ts.length; i++) {
-//     var todo = { title: ts[i].innerHTML, done: false };
-//     dataBuff.unshift(todo);
-//   }
-//   for (i = 0; i < ds.length; i++) {
-//     var todo = { title: ds[i].innerHTML, done: true };
-//     dataBuff.unshift(todo);
-//   }
-//   //保存数据
-//   saveData(dataBuff, function() {
-//     reloadHtml(dataBuff);
-//   });
-// }
 
 // 清空已完成的任务
 function clearFinished() {
