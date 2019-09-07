@@ -121,12 +121,19 @@ function reloadHtml(data) {
     var doneCount = 0;
     var todoString = "";
     var doneString = "";
+
+    var finishedIndex = 1;
+    var unFinishedIndex = 1;
     for (var i = data.length - 1; i >= 0; i--) {
+      //已经完成的todo
       if (data[i].done) {
         doneString +=
           "<li draggable='true'><input type='checkbox' onchange='finished(" +
           i +
           ",\"done\",false)' checked='checked' />" +
+          "<p>" +
+          finishedIndex++ +
+          ". </p>" +
           "<p id='" +
           data[i].id +
           "' onclick='edit(" +
@@ -139,10 +146,14 @@ function reloadHtml(data) {
           ")'> - </a></li>";
         doneCount++;
       } else {
+        //未完成的todo
         todoString +=
           "<li draggable='true'><input type='checkbox' onchange='finished(" +
           i +
           ',"done",true)\' />' +
+          "<p>" +
+          unFinishedIndex++ +
+          ". </p>" +
           "<p id='" +
           data[i].id +
           "' onclick='edit(" +
@@ -252,8 +263,8 @@ function handleDrop(e) {
     e.stopPropagation();
   }
   if (dragSrcEl != this) {
-    var srcId = dragSrcEl.children[1].id;
-    var targetId = this.children[1].id;
+    var srcId = dragSrcEl.children[2].id;
+    var targetId = this.children[2].id;
 
     var buffList = [];
     var srcIndexBuff = 0;
