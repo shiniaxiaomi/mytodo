@@ -65,6 +65,20 @@ li input {
   height: 22px;
   cursor: pointer;
 }
+.up{
+  top: 3px;
+  right: 95px;
+  padding: 3px 5px;
+  line-height: 17px;
+  font-size: 15px;
+}
+.down{
+  top: 3px;
+  right: 40px;
+  padding: 3px 5px;
+  line-height: 17px;
+  font-size: 15px;
+}
 li span{
   top: 3px;
   right: 40px;

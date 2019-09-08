@@ -223,6 +223,7 @@ function reloadHtml(data) {
         a.innerHTML = " - ";
         li.appendChild(a);
 
+       
         if(!isPC){
           span = document.createElement("span");
           span.setAttribute("index",i);
@@ -267,6 +268,9 @@ function reloadHtml(data) {
 var cleanFlag=true;
 //移动端移动时不断改变位置
 function handleMove(e){
+  if (e.stopPropagation) {
+    e.stopPropagation();
+  }
   if(cleanFlag){
     mobileBuff.style.top=e.changedTouches[0].clientY-2+"px";
     mobileBuff.style.right=document.body.clientWidth-e.changedTouches[0].clientX-21+"px";
@@ -278,6 +282,10 @@ function handleMove(e){
 }
 //开始移动时,记录拖拽的元素,并显示拖拽buff
 function handleStart(e){
+  if (e.stopPropagation) {
+    e.stopPropagation();
+  }
+
   dragSrcElMobile=this;
   
   mobileBuff.style.top=e.changedTouches[0].clientY-2+"px";
@@ -286,6 +294,10 @@ function handleStart(e){
 }
 //移动结束时,保存移动后的数据,并隐藏拖拽buff
 function handleEnd(e){
+  if (e.stopPropagation) {
+    e.stopPropagation();
+  }
+
   mobileBuff.style.display="none";//隐藏
   var span=document.elementFromPoint(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
   var index=span.getAttribute("index");
@@ -326,6 +338,8 @@ function handleEnd(e){
       reloadHtml(todoListData);
     });
   }
+
+  return false;
 
 }
 
