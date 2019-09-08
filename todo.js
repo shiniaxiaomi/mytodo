@@ -1,3 +1,49 @@
+
+var title = undefined;
+var form = undefined;
+var todoListData = []; //todo列表
+var dragSrcEl = null; //拖拽
+var dragSrcElMobile = null;
+var isPC=IsPC();//判断是否是PC端
+var mobileBuff=undefined;//移动端的拖拽buff
+if(!isPC){
+  //创建一个移动端的拖拽buff
+  mobileBuff=document.createElement("span");
+  mobileBuff.style.position="absolute";
+  mobileBuff.style.opacity=0.6;//设置透明度
+  mobileBuff.style.display="none";//隐藏
+  mobileBuff.innerHTML=" move "
+  document.getElementsByTagName("body")[0].appendChild(mobileBuff);//添加到body
+}
+
+window.onload = function() {
+
+  title = document.getElementById("title");
+  form = document.getElementById("form");
+
+  //先尝试自动登入
+  ajaxPostUtil("/autoLogin", { password: "" }, function(data) {
+    if (data.code == 1) {
+      //获取数据
+      getData(function(data) {
+        todoListData = data; //更新本地的数据
+        reloadHtml(todoListData); //重新加载页面
+      });
+    } else {
+      //登入
+      login(function(data) {
+        //获取数据
+        getData(function(data) {
+          todoListData = data; //更新本地的数据
+          reloadHtml(todoListData); //重新加载页面
+        });
+      });
+    }
+  });
+};
+
+
+
 //删除一个todo
 function remove(i) {
   var todo = todoListData.splice(i, 1)[0];
@@ -70,36 +116,6 @@ function login(handleFunction) {
   });
 }
 
-var title = undefined;
-var form = undefined;
-var todoListData = []; //todo列表
-var dragSrcEl = null; //拖拽
-var dragSrcElMobile = null;
-
-window.onload = function() {
-  title = document.getElementById("title");
-  form = document.getElementById("form");
-
-  //先尝试自动登入
-  ajaxPostUtil("/autoLogin", { password: "" }, function(data) {
-    if (data.code == 1) {
-      //获取数据
-      getData(function(data) {
-        todoListData = data; //更新本地的数据
-        reloadHtml(todoListData); //重新加载页面
-      });
-    } else {
-      //登入
-      login(function(data) {
-        //获取数据
-        getData(function(data) {
-          todoListData = data; //更新本地的数据
-          reloadHtml(todoListData); //重新加载页面
-        });
-      });
-    }
-  });
-};
 
 //从服务器端获取数据并加载
 function getData(handleFunction) {
@@ -135,6 +151,7 @@ function reloadHtml(data) {
     var p1 = undefined;
     var p2 = undefined;
     var a = undefined;
+    var span=undefined;
     for (var i = data.length - 1; i >= 0; i--) {
       li = undefined;
       input = undefined;
@@ -142,6 +159,7 @@ function reloadHtml(data) {
       p1 = undefined;
       p2 = undefined;
       a = undefined;
+      span=undefined;
 
       //已经完成的todo
       if (data[i].done) {
@@ -169,6 +187,13 @@ function reloadHtml(data) {
         a.setAttribute("href", "javascript:remove(" + i + ")");
         a.innerHTML = " - ";
         li.appendChild(a);
+
+        if(!isPC){
+          span = document.createElement("span");
+          span.setAttribute("index",i);
+          span.innerHTML = " move ";
+          li.appendChild(span);
+        }
 
         doneString += li.outerHTML;
         doneCount++;
@@ -198,6 +223,13 @@ function reloadHtml(data) {
         a.innerHTML = " - ";
         li.appendChild(a);
 
+        if(!isPC){
+          span = document.createElement("span");
+          span.setAttribute("index",i);
+          span.innerHTML = " move ";
+          li.appendChild(span);
+        }
+
         todoString += li.outerHTML;
         todoCount++;
       }
@@ -219,12 +251,76 @@ function reloadHtml(data) {
     li.addEventListener("dragstart", handleDragStart, false);
     li.addEventListener("dragover", handleDragOver, false);
     li.addEventListener("drop", handleDrop, false);
-    //设置移动端拖拽
-    // li.addEventListener("touchmove", handleMove, false);
-    // li.addEventListener("touchstart", handleStart, false);
-    // li.addEventListener("touchend", handleEnd, false);
   });
+
+  var spans=todolist.querySelectorAll("ol li span");
+  [].forEach.call(spans, function(span) {
+    //设置移动端拖拽
+    span.addEventListener("touchmove", handleMove, false);
+    span.addEventListener("touchstart", handleStart, false);
+    span.addEventListener("touchend", handleEnd, false);
+  });
+
 }
+
+//移动端移动时不断改变位置
+function handleMove(e){
+  mobileBuff.style.top=e.changedTouches[0].clientY-2+"px";
+  mobileBuff.style.right=document.body.clientWidth-e.changedTouches[0].clientX-21+"px";
+}
+//开始移动时,记录拖拽的元素,并显示拖拽buff
+function handleStart(e){
+  dragSrcElMobile=this;
+  
+  mobileBuff.style.top=e.changedTouches[0].clientY-2+"px";
+  mobileBuff.style.right=document.body.clientWidth-e.changedTouches[0].clientX-21+"px";
+  mobileBuff.style.display="block";//显示
+}
+//移动结束时,保存移动后的数据,并隐藏拖拽buff
+function handleEnd(e){
+  mobileBuff.style.display="none";//隐藏
+  var span=document.elementFromPoint(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
+  var index=span.getAttribute("index");
+  if(index==null){
+    return;
+  }
+
+  if (dragSrcElMobile != span) {
+    var srcId = dragSrcElMobile.parentElement.getElementsByTagName("p")[1].id;
+    var targetId = span.parentElement.getElementsByTagName("p")[1].id;
+
+    var buffList = [];
+    var srcIndexBuff = 0;
+    var targetIndexBuff = 0;
+
+    //找出src和target的Id
+    for (var i = 0; i < todoListData.length; i++) {
+      if (todoListData[i].id == srcId) {
+        srcIndexBuff = i;
+      } else if (todoListData[i].id == targetId) {
+        targetIndexBuff = i;
+      }
+    }
+
+    for (var i = 0; i < todoListData.length; i++) {
+      if (i == srcIndexBuff) {
+        continue;
+      } else if (i == targetIndexBuff) {
+        buffList.push(todoListData[srcIndexBuff]);
+        buffList.push(todoListData[targetIndexBuff]);
+      } else {
+        buffList.push(todoListData[i]);
+      }
+    }
+    todoListData = buffList;
+    //保存数据
+    saveData(todoListData, function() {
+      reloadHtml(todoListData);
+    });
+  }
+
+}
+
 
 // 清空已完成的任务
 function clearFinished() {
@@ -336,4 +432,20 @@ function handleDrop(e) {
     });
   }
   return false;
+}
+
+//判断是否是PC端
+function IsPC() {
+  var userAgentInfo = navigator.userAgent;
+  var Agents = ["Android", "iPhone",
+     "SymbianOS", "Windows Phone",
+     "iPad", "iPod"];
+  var flag = true;
+  for (var v = 0; v < Agents.length; v++) {
+     if (userAgentInfo.indexOf(Agents[v]) > 0) {
+        flag = false;
+        break;
+     }
+  }
+  return flag;
 }

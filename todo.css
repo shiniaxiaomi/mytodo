@@ -65,6 +65,13 @@ li input {
   height: 22px;
   cursor: pointer;
 }
+li span{
+  top: 3px;
+  right: 40px;
+  padding: 3px 5px;
+  line-height: 17px;
+  font-size: 15px;
+}
 p {
   margin: 0;
   display: contents;
@@ -98,7 +105,7 @@ ul li {
 }
 li a {
   position: absolute;
-  top: 2px;
+  top: 4px;
   right: 5px;
   display: inline-block;
   width: 14px;
