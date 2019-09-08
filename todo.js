@@ -263,10 +263,18 @@ function reloadHtml(data) {
 
 }
 
+
+var cleanFlag=true;
 //移动端移动时不断改变位置
 function handleMove(e){
-  mobileBuff.style.top=e.changedTouches[0].clientY-2+"px";
-  mobileBuff.style.right=document.body.clientWidth-e.changedTouches[0].clientX-21+"px";
+  if(cleanFlag){
+    mobileBuff.style.top=e.changedTouches[0].clientY-2+"px";
+    mobileBuff.style.right=document.body.clientWidth-e.changedTouches[0].clientX-21+"px";
+    cleanFlag=false;
+    setTimeout(() => {
+      cleanFlag=true;
+    }, 50);
+  }
 }
 //开始移动时,记录拖拽的元素,并显示拖拽buff
 function handleStart(e){
