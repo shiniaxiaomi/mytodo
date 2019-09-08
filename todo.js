@@ -18,17 +18,18 @@ function finished(i, field, value) {
 }
 
 //更改一个todo
-function edit(i) {
-  var p = document.getElementById(i.id);
+function edit(i,index) {
+  var id=i.id;
+  var p = document.getElementById(id);
   var buff = prompt("修改内容", p.innerHTML);
   if (buff == null) {
     return;
   }
   p.innerHTML = buff;
 
-  var todo = todoListData.splice(i, 1)[0];
+  var todo = todoListData.splice(index, 1)[0];
   todo["title"] = buff;
-  todoListData.splice(i, 0, todo);
+  todoListData.splice(index, 0, todo);
   saveData(todoListData, function(response) {
     reloadHtml(todoListData);
     console.log("修改成功!");
@@ -154,7 +155,7 @@ function reloadHtml(data) {
         li.appendChild(input);
 
         div = document.createElement("div");
-        div.setAttribute("onclick", "edit(" + data[i].id + ")");
+        div.setAttribute("onclick", "edit(" + data[i].id + ","+i+")");
         p1 = document.createElement("p");
         p1.innerHTML = finishedIndex++ + ". ";
         p2 = document.createElement("p");
@@ -182,7 +183,7 @@ function reloadHtml(data) {
         li.appendChild(input);
 
         div = document.createElement("div");
-        div.setAttribute("onclick", "edit(" + data[i].id + ")");
+        div.setAttribute("onclick", "edit(" + data[i].id + ","+i+")");
         p1 = document.createElement("p");
         p1.innerHTML = unFinishedIndex++ + ". ";
         p2 = document.createElement("p");
