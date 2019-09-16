@@ -3,19 +3,34 @@
   <head>
     <meta charset="utf-8" />
     <title>jQuery UI 拖动（Draggable） + 排序（Sortable）</title>
-    <link
+    <!-- <link
       rel="stylesheet"
       href="https://cdn.bootcss.com/jqueryui/1.12.1/jquery-ui.min.css"
-    />
+    /> -->
     <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdn.bootcss.com/jqueryui/1.12.1/jquery-ui.min.js"></script>
     <!--  jquery.ui.touch-punch的本地资源引用-->
     <script src="https://cdn.bootcss.com/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
 
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+      integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+      crossorigin="anonymous"
+    />
+    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
+      integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+      crossorigin="anonymous"
+    ></script>
+
     <style>
       ul {
         list-style-type: none;
         margin: 0;
+
         padding: 0;
         margin-bottom: 10px;
       }
@@ -23,60 +38,78 @@
       li {
         margin: 5px;
         padding: 5px;
-        width: 150px;
+        /* width: 150px; */
+      }
+
+      .input-group .form-control {
+        float: none;
       }
     </style>
   </head>
 
   <body>
-    <!-- <ul>
-      <li id="draggable" class="ui-state-highlight">请拖拽我</li>
-    </ul> -->
+    <button class="btn btn-default" type="button" onclick="add()">添加</button>
 
-    <button onclick="add()">添加</button>
+    <div class="row">
+      <div id="sortable" class="col-lg-6"></div>
+    </div>
 
-    <ul id="sortable">
-      <!-- <li class="ui-state-default">Item 1</li>
-        <li class="ui-state-default">Item 2</li>
-        <li class="ui-state-default">Item 3</li>
-        <li class="ui-state-default">Item 4</li>
-        <li class="ui-state-default">Item 5</li> -->
-    </ul>
+    <ul id="sortable"></ul>
+
+    <div>
+      <textarea
+        id="detail"
+        onfocus="areaFocus()"
+        onblur="areaBlur()"
+      ></textarea>
+    </div>
   </body>
 </html>
 <script>
   var isMoving = false;
-  var arr = ["1", "2"];
-  var ul = undefined;
+  var arr = [
+    { title: "1", detail: "sdfdsf" },
+    { title: "2", detail: "222222" }
+  ];
+  var listElement = undefined;
+  var detailElement = undefined;
+  var detailBuffer = undefined;
+  var currentTodo = undefined;
+
+  function areaFocus() {
+    detailBuffer = detailElement.value;
+  }
+
+  function areaBlur() {
+    if (detailBuffer == undefined || detailBuffer == detailElement.value) {
+      return;
+    }
+    detailBuffer = undefined;
+    //保存修改的文本到对应的todo中区
+
+    $(currentTodo).attr("detail", detailElement.value);
+    console.log("保存成功");
+  }
+
   $(function() {
-    ul = $("ul").eq(0);
+    detailElement = document.getElementById("detail");
+
+    listElement = $("#sortable").eq(0);
     arr.map(item => {
-    //   ul.append('<li class="ui-state-default">' + item + "</li>");
-        createElement(item);
+      createElement(item);
     });
 
     $("#sortable").sortable({
       revert: true,
       start: function(event, ui) {
         //当开始排序时触发
-        // alert("this is start");
-        // console.log("this is start")
-        isMoving=true;
+        isMoving = true;
       },
       stop: function(event, ui) {
         //排序动作结束时触发此事件。
-        //alert("this is stop");
-        // console.log("this is stop")
-        isMoving=false;
+        isMoving = false;
       }
     });
-
-    // $("#draggable").draggable({
-    //     connectToSortable: "#sortable",
-    //     helper: "clone",
-    //     revert: "invalid"
-    // });
-    $("ul, li").disableSelection();
   });
   var touchValue = { x: 5, y: 5, sx: 0, sy: 0, ex: 0, ey: 0 }; //initialize the touch values
   window.addEventListener("touchstart", function() {
@@ -105,27 +138,58 @@
     console.log("touchend");
   });
 
+  //添加一个todo
   function add() {
     var buff = prompt("添加todo");
-    createElement(buff);
-    // var li = $('<li class="ui-state-default">' + buff + "</li>");
-    // li.click(function(event) {
-    //   if (isMoving) return;
-    //   this.innerText = prompt("添加todo", this.innerText);
-    //   event.preventDefault();
-    // });
-    // ul.append(li);
+    if (buff == null) return;
+    createElement({ title: buff, detail: "" });
   }
 
+  //删除一个todo
+  function remove(item) {
+    var buff = confirm("确认删除?");
+    if (buff == true) {
+      var li = $(item)
+        .parents("div")
+        .eq(0)
+        .remove();
+    }
+  }
 
-//创建一个todo
-  function createElement(str){
-    var li = $('<li class="ui-state-default">' + str + "</li>");
-    li.click(function(event) {
+  //修改todo的title
+  function update(item) {
+    var li = $(item)
+      .parent()
+      .prev();
+    var strBuffer = prompt("添加todo", li[0].innerText);
+    if (strBuffer == null) return;
+    li[0].innerText = strBuffer;
+  }
+
+  //创建一个todo
+  function createElement(item) {
+    var div = $('<div class="input-group"></div>');
+    var li = $(
+      '<li type="text" class="form-control" detail=' +
+        item.detail +
+        ">" +
+        item.title +
+        "</li>"
+    );
+    li.click(function() {
+      $(detailElement).blur();
       if (isMoving) return;
-      this.innerText = prompt("添加todo", this.innerText);
-      event.preventDefault();
+      detailElement.value = $(this).attr("detail");
+      detailBuffer = undefined;
+      currentTodo = this;
     });
-    ul.append(li);
+    var span = $(
+      '<span class="input-group-btn"><button class="btn btn-default" type="button" onclick="update(this)"">修改</button><button class="btn btn-default" type="button" onclick="remove(this)"">删除</button></span>'
+    );
+
+    div.append(li);
+    div.append(span);
+
+    listElement.append(div);
   }
 </script>
