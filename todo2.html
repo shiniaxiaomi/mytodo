@@ -2,115 +2,138 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>jQuery UI 拖动（Draggable） + 排序（Sortable）</title>
-    <!-- <link
-      rel="stylesheet"
-      href="https://cdn.bootcss.com/jqueryui/1.12.1/jquery-ui.min.css"
-    /> -->
+    <title>陆英杰的todo</title>
+
     <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdn.bootcss.com/jqueryui/1.12.1/jquery-ui.min.js"></script>
-    <!--  jquery.ui.touch-punch的本地资源引用-->
     <script src="https://cdn.bootcss.com/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
 
-    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
-      integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-      crossorigin="anonymous"
-    />
-    <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"
-      integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-      crossorigin="anonymous"
-    ></script>
+    <script src="./layui/layui.js"></script>
+    <link href="./layui/css/layui.css" rel="stylesheet" />
 
     <style>
-      ul {
-        list-style-type: none;
-        margin: 0;
-
-        padding: 0;
-        margin-bottom: 10px;
+      .todo {
       }
-
-      li {
-        margin: 5px;
-        padding: 5px;
-        /* width: 150px; */
+      .todoTitle {
       }
-
-      .input-group .form-control {
-        float: none;
+      .todoButton {
       }
     </style>
   </head>
 
   <body>
-    <button class="btn btn-default" type="button" onclick="add()">添加</button>
+    <div class="layui-container">
+      <div class="layui-row">
+        <div class="layui-col-xs6 layui-col-sm6 layui-col-md4">
+          <input
+            id="todoTitle"
+            type="text"
+            name="title"
+            autocomplete="off"
+            placeholder="输入todo"
+            class="layui-input"
+            onkeyup="addEnter(event)"
+          />
 
-    <div class="row">
-      <div id="sortable" class="col-lg-6"></div>
-    </div>
-
-    <ul id="sortable"></ul>
-
-    <div>
-      <textarea
-        id="detail"
-        onfocus="areaFocus()"
-        onblur="areaBlur()"
-      ></textarea>
+          <!-- todoList -->
+          <div id="sortable"></div>
+        </div>
+      </div>
     </div>
   </body>
 </html>
+
 <script>
   var isMoving = false;
+  var todoList = undefined;
   var arr = [
     { title: "1", detail: "sdfdsf" },
     { title: "2", detail: "222222" }
   ];
-  var listElement = undefined;
-  var detailElement = undefined;
-  var detailBuffer = undefined;
-  var currentTodo = undefined;
-
-  function areaFocus() {
-    detailBuffer = detailElement.value;
-  }
-
-  function areaBlur() {
-    if (detailBuffer == undefined || detailBuffer == detailElement.value) {
-      return;
-    }
-    detailBuffer = undefined;
-    //保存修改的文本到对应的todo中区
-
-    $(currentTodo).attr("detail", detailElement.value);
-    console.log("保存成功");
-  }
 
   $(function() {
-    detailElement = document.getElementById("detail");
-
-    listElement = $("#sortable").eq(0);
+    todoList = $("#sortable").eq(0);
     arr.map(item => {
-      createElement(item);
+      addTodo(item);
     });
 
     $("#sortable").sortable({
       revert: true,
       start: function(event, ui) {
-        //当开始排序时触发
         isMoving = true;
       },
       stop: function(event, ui) {
-        //排序动作结束时触发此事件。
         isMoving = false;
       }
     });
   });
+
+  //添加一个todo
+  function addTodo(item) {
+    var todo = $("<div class='todo'></div>");
+    var span = $("<span class='todoTitle'>" + item.title + "</span>");
+    span.click(function() {
+      if (isMoving) return;
+      var _this = $(this).siblings("textarea");
+
+      //隐藏和显示todo
+      $("#sortable")
+        .find("textarea")
+        .map((index, item) => {
+          if (item != _this[0]) {
+            $(item).hide();
+          }
+        });
+      _this.toggle();
+    });
+    //修改一个todo
+    var updateButton = $("<button class='todoButton'>修改</button>");
+    updateButton.click(function() {
+      var span = $(this).prev();
+      var strBuffer = prompt("添加todo", span[0].innerText);
+      if (strBuffer == null) return;
+      span[0].innerText = strBuffer;
+    });
+    //删除一个todo
+    var removeButton = $("<button class='todoButton'>删除</button>");
+    removeButton.click(function() {
+      var buff = confirm("确认删除?");
+      if (buff == true) {
+        $(this)
+          .parent()
+          .remove();
+      }
+    });
+    var textarea = $(
+      "<textarea class='layui-textarea'>" + item.detail + "</textarea>"
+    );
+    textarea.css("display", "none"); //隐藏detail
+    //detail失去焦点,保存数据
+    textarea.blur(function() {
+      console.log("保存数据");
+    });
+
+    todo.append(span);
+    todo.append(updateButton);
+    todo.append(removeButton);
+    todo.append(textarea);
+
+    todoList.append(todo);
+  }
+
+  //输入框回车事件
+  function addEnter(event) {
+    var key = event.keyCode;
+    //enter
+    if (key == 13) {
+      var title = $("#todoTitle").val();
+      if (title == "") return;
+      addTodo({ title: title, detail: "" });
+      $("#todoTitle").val(""); //清空输入框
+    }
+  }
+
+  //元素拖拽事件
   var touchValue = { x: 5, y: 5, sx: 0, sy: 0, ex: 0, ey: 0 }; //initialize the touch values
   window.addEventListener("touchstart", function() {
     console.log("touchstart");
@@ -137,59 +160,4 @@
       : document.selection.empty();
     console.log("touchend");
   });
-
-  //添加一个todo
-  function add() {
-    var buff = prompt("添加todo");
-    if (buff == null) return;
-    createElement({ title: buff, detail: "" });
-  }
-
-  //删除一个todo
-  function remove(item) {
-    var buff = confirm("确认删除?");
-    if (buff == true) {
-      var li = $(item)
-        .parents("div")
-        .eq(0)
-        .remove();
-    }
-  }
-
-  //修改todo的title
-  function update(item) {
-    var li = $(item)
-      .parent()
-      .prev();
-    var strBuffer = prompt("添加todo", li[0].innerText);
-    if (strBuffer == null) return;
-    li[0].innerText = strBuffer;
-  }
-
-  //创建一个todo
-  function createElement(item) {
-    var div = $('<div class="input-group"></div>');
-    var li = $(
-      '<li type="text" class="form-control" detail=' +
-        item.detail +
-        ">" +
-        item.title +
-        "</li>"
-    );
-    li.click(function() {
-      $(detailElement).blur();
-      if (isMoving) return;
-      detailElement.value = $(this).attr("detail");
-      detailBuffer = undefined;
-      currentTodo = this;
-    });
-    var span = $(
-      '<span class="input-group-btn"><button class="btn btn-default" type="button" onclick="update(this)"">修改</button><button class="btn btn-default" type="button" onclick="remove(this)"">删除</button></span>'
-    );
-
-    div.append(li);
-    div.append(span);
-
-    listElement.append(div);
-  }
 </script>
