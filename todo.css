@@ -26,13 +26,17 @@ body {
   box-sizing: border-box;
 }
 
-.moveButton{
-  background-color: #ccc;
-  z-index: 10000;
+.moveButton {
+  background-color: #41232300;
+  z-index: 515;
   position: relative;
-  right: 0px;
+  padding: 4px 11px;
   float: right;
-  height: 36.8px;
+}
+
+.moveButton > i {
+  font-size: 23px;
+  color: #999696;
 }
 
 #todoTitle {
