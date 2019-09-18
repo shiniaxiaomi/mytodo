@@ -26,6 +26,15 @@ body {
   box-sizing: border-box;
 }
 
+.moveButton{
+  background-color: #ccc;
+  z-index: 10000;
+  position: relative;
+  right: 0px;
+  float: right;
+  height: 36.8px;
+}
+
 #todoTitle {
   margin-left: auto;
   width: 60%;

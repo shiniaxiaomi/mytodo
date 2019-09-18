@@ -4,19 +4,34 @@ var isPC = IsPC(); //判断是否是PC端
 $(function() {
   var todoList = []; //保存todo数据
   
-  
-    //设置排序
-    $("#accordion").sortable({
-      axis: "y", //只能在y轴上拖拽
-      handle: "h3", //指定手柄为h3元素
-      delay: 200, //设置延迟,防误触
-      stop: function(event, ui) {
-        // 当排序时，IE 不能注册 blur，所以触发 focusout 处理程序来移除 .ui-state-focus
-        // ui.item.children("h3").triggerHandler("focusout");
 
-        saveData(); //排序结束时,保存数据
-      }
-    })
+    //设置排序
+    if(isPC){
+      $("#accordion").sortable({
+        axis: "y", //只能在y轴上拖拽
+        handle: "h3", //指定手柄为h3元素
+        delay: 150, //设置延迟,防误触
+        stop: function(event, ui) {
+          // 当排序时，IE 不能注册 blur，所以触发 focusout 处理程序来移除 .ui-state-focus
+          ui.item.children("h3").triggerHandler("focusout");
+  
+          saveData(); //排序结束时,保存数据
+        }
+      })
+    }else{
+      $("#accordion").sortable({
+        axis: "y", //只能在y轴上拖拽
+        handle: ".moveButton", //指定手柄为移动按钮元素
+        delay: 150, //设置延迟,防误触
+        stop: function(event, ui) {
+          // 当排序时，IE 不能注册 blur，所以触发 focusout 处理程序来移除 .ui-state-focus
+          ui.item.children("h3").triggerHandler("focusout");
+  
+          saveData(); //排序结束时,保存数据
+        }
+      })
+    }
+    
     //设置面板内容
     $("#accordion").accordion({
       header: "> div > h3",
@@ -83,12 +98,9 @@ function addTodo(item, isAppend) {
   if(isPC){
     h3 = $("<h3>" + item.title + "</h3>");
   }else{
+    var moveButton=$("<span class='moveButton'>移动</span>")
+    div.prepend(moveButton)
     h3 = $("<h3>" + item.title + "</h3>");
-    var toggleButton=$("<button >展开</btton>");
-    toggleButton.click(function(){
-      // alert("sdfdsf")
-    })
-    div.prepend(toggleButton)
   }
   
   var content = $("<div></div>");
