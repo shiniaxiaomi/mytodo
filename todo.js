@@ -1,109 +1,43 @@
+$(function() {
+  var todoList = []; //保存todo数据
 
-var title = undefined;
-var form = undefined;
-var todoListData = []; //todo列表
-var dragSrcEl = null; //拖拽
-var dragSrcElMobile = null;
-var isPC=IsPC();//判断是否是PC端
-var mobileBuff=undefined;//移动端的拖拽buff
-if(!isPC){
-  //创建一个移动端的拖拽buff
-  mobileBuff=document.createElement("span");
-  mobileBuff.style.position="absolute";
-  mobileBuff.style.opacity=0.6;//设置透明度
-  mobileBuff.style.display="none";//隐藏
-  mobileBuff.innerHTML=" move "
-  document.getElementsByTagName("body")[0].appendChild(mobileBuff);//添加到body
-}
+  $("#accordion")
+    //设置面板内容
+    .accordion({
+      header: "> div > h3",
+      animate: "easeInOutCubic",
+      animate: 150, //动画的持续时间
+      collapsible: true,
+      heightStyle: "content", //每个面板的高度取决于它的内容
+      active: false //默认全部关闭
+    })
+    //设置排序
+    .sortable({
+      axis: "y", //只能在y轴上拖拽
+      handle: "h3", //指定手柄为h3元素
+      delay: 2000, //设置延迟,防误触
+      stop: function(event, ui) {
+        // 当排序时，IE 不能注册 blur，所以触发 focusout 处理程序来移除 .ui-state-focus
+        ui.item.children("h3").triggerHandler("focusout");
 
-window.onload = function() {
-
-  title = document.getElementById("title");
-  form = document.getElementById("form");
+        saveData(); //排序结束时,保存数据
+      }
+    });
 
   //先尝试自动登入
   ajaxPostUtil("/autoLogin", { password: "" }, function(data) {
     if (data.code == 1) {
-      //获取数据
-      getData(function(data) {
-        todoListData = data; //更新本地的数据
-        reloadHtml(todoListData); //重新加载页面
-      });
+      getData(); //获取数据并刷新
     } else {
       //登入
       login(function(data) {
-        //获取数据
-        getData(function(data) {
-          todoListData = data; //更新本地的数据
-          reloadHtml(todoListData); //重新加载页面
-        });
+        getData(); //获取数据并刷新
       });
     }
   });
-};
 
-
-
-//删除一个todo
-function remove(i) {
-  var todo = todoListData.splice(i, 1)[0];
-  saveData(todoListData, function(response) {
-    reloadHtml(todoListData);
-    console.log("删除成功!");
-  });
-}
-
-//完成一个todo
-function finished(i, field, value) {
-  var todo = todoListData.splice(i, 1)[0];
-  todo[field] = value;
-  todoListData.splice(i, 0, todo);
-  saveData(todoListData, function() {
-    reloadHtml(todoListData);
-  });
-}
-
-//更改一个todo
-function edit(i,index) {
-  var id=i.id;
-  var p = document.getElementById(id);
-  var buff = prompt("修改内容", p.innerHTML);
-  if (buff == null) {
-    return;
-  }
-  p.innerHTML = buff;
-
-  var todo = todoListData.splice(index, 1)[0];
-  todo["title"] = buff;
-  todoListData.splice(index, 0, todo);
-  saveData(todoListData, function(response) {
-    reloadHtml(todoListData);
-    console.log("修改成功!");
-  });
-}
-
-//添加todo
-function addTodo() {
-  if (title.value == "") {
-    alert("内容不能为空");
-  } else {
-    var todo = {
-      id:
-        "p" +
-        Math.random()
-          .toString()
-          .substr(3, 15),
-      title: title.value,
-      done: false
-    };
-    todoListData.push(todo);
-    form.reset();
-    //保存数据
-    saveData(todoListData, function() {
-      reloadHtml(todoListData); //加载到页面
-    });
-  }
-}
+  $("#todoTitle").focus(); //输入框自动获取焦点
+});
 
 //登入
 function login(handleFunction) {
@@ -116,246 +50,136 @@ function login(handleFunction) {
   });
 }
 
-
 //从服务器端获取数据并加载
-function getData(handleFunction) {
+function getData() {
   //从服务器端获取数据
   ajaxGetUtil("/getTodoList", function(data) {
-    handleFunction(data);
+    todoList = data; //更新本地的数据
+    initData(); //初始化数据
+    refreshContent(); //刷新容器
   });
 }
 
-//将数据保存到服务器端
-function saveData(params, handleFunction) {
-  ajaxPostUtil("/saveTodoList", params, function(response) {
-    handleFunction(response);
-  });
+//刷新面板容器
+function refreshContent() {
+  $("#accordion").accordion("refresh");
 }
 
-//将data数据加载到页面
-function reloadHtml(data) {
-  var todolist = document.getElementById("todolist");
-  var donelist = document.getElementById("donelist");
+//初始化todo
+function initData() {
+  todoList.forEach(item => {
+    addTodo(item, true);
+  });
+  refreshContent();
+}
 
-  if (data != undefined && data.length != 0) {
-    var todoCount = 0;
-    var doneCount = 0;
-    var todoString = "";
-    var doneString = "";
+//添加一个todo(isAppend:true表示加在最后面,false表示加在最前面,默认加在最前面)
+function addTodo(item, isAppend) {
+  var div = $("<div class='group'></div>");
+  var h3 = $("<h3>" + item.title + "</h3>");
+  var content = $("<div></div>");
+  var textarea = $("<textarea>" + item.detail + "</textarea>");
 
-    var finishedIndex = 1;
-    var unFinishedIndex = 1;
-    var li = undefined;
-    var input = undefined;
-    var div = undefined;
-    var p1 = undefined;
-    var p2 = undefined;
-    var a = undefined;
-    var span=undefined;
-    for (var i = data.length - 1; i >= 0; i--) {
-      li = undefined;
-      input = undefined;
-      div = undefined;
-      p1 = undefined;
-      p2 = undefined;
-      a = undefined;
-      span=undefined;
+  var btnGroup = $("<div class='btnGroup'></div>");
+  var updateTitleButton = $("<button>修改标题</button>");
+  var updateDetailButton = $("<button>保存详细</button>");
+  var removeTodoButton = $("<button>删除todo</button>");
 
-      //已经完成的todo
-      if (data[i].done) {
-        li = document.createElement("li");
-        li.setAttribute("draggable", true);
+  btnGroup.append(updateTitleButton);
+  btnGroup.append(updateDetailButton);
+  btnGroup.append(removeTodoButton);
+  content.append(textarea);
+  content.append(btnGroup);
+  div.append(h3);
+  div.append(content);
 
-        input = document.createElement("input");
-        input.setAttribute("type", "checkbox");
-        input.setAttribute("onchange", "finished(" + i + ",'done',false)");
-        input.setAttribute("checked", "checked");
-        li.appendChild(input);
+  //保存title点击事件
+  updateTitleButton.click(function() {
+    var group = $(this).parents(".group");
 
-        div = document.createElement("div");
-        div.setAttribute("onclick", "edit(" + data[i].id + ","+i+")");
-        p1 = document.createElement("p");
-        p1.innerHTML = finishedIndex++ + ". ";
-        p2 = document.createElement("p");
-        p2.setAttribute("id", data[i].id);
-        p2.innerHTML = data[i].title;
-        div.appendChild(p1);
-        div.appendChild(p2);
-        li.appendChild(div);
+    var title = prompt(
+      "请输入要修改的title",
+      $(group)
+        .find("h3")
+        .eq(0)
+        .text()
+    );
+    if (title != null) {
+      var spanHtml = $(group).find("span")[0].outerHTML; //获取前面的icon
 
-        a = document.createElement("a");
-        a.setAttribute("href", "javascript:remove(" + i + ")");
-        a.innerHTML = " - ";
-        li.appendChild(a);
+      $(group)
+        .find("h3")
+        .eq(0)
+        .html(spanHtml + title); //设置title
 
-        if(!isPC){
-          span = document.createElement("span");
-          span.setAttribute("index",i);
-          span.innerHTML = " move ";
-          li.appendChild(span);
-        }
-
-        doneString += li.outerHTML;
-        doneCount++;
-      } else {
-        //未完成的todo
-        li = document.createElement("li");
-        li.setAttribute("draggable", true);
-
-        input = document.createElement("input");
-        input.setAttribute("type", "checkbox");
-        input.setAttribute("onchange", "finished(" + i + ",'done',true)");
-        li.appendChild(input);
-
-        div = document.createElement("div");
-        div.setAttribute("onclick", "edit(" + data[i].id + ","+i+")");
-        p1 = document.createElement("p");
-        p1.innerHTML = unFinishedIndex++ + ". ";
-        p2 = document.createElement("p");
-        p2.setAttribute("id", data[i].id);
-        p2.innerHTML = data[i].title;
-        div.appendChild(p1);
-        div.appendChild(p2);
-        li.appendChild(div);
-
-        a = document.createElement("a");
-        a.setAttribute("href", "javascript:remove(" + i + ")");
-        a.innerHTML = " - ";
-        li.appendChild(a);
-
-       
-        if(!isPC){
-          span = document.createElement("span");
-          span.setAttribute("index",i);
-          span.innerHTML = " move ";
-          li.appendChild(span);
-        }
-
-        todoString += li.outerHTML;
-        todoCount++;
-      }
+      saveData();
     }
-    todocount.innerHTML = todoCount;
-    todolist.innerHTML = todoString;
-    donecount.innerHTML = doneCount;
-    donelist.innerHTML = doneString;
+  });
+
+  //保存detail点击事件
+  updateDetailButton.click(function() {
+    saveData();
+  });
+
+  //删除todo
+  removeTodoButton.click(function() {
+    $(this)
+      .parents(".group")
+      .eq(0)
+      .remove();
+
+    saveData();
+  });
+
+  if (isAppend == undefined || isAppend == false) {
+    $("#accordion").prepend(div);
   } else {
-    todocount.innerHTML = 0;
-    todolist.innerHTML = "";
-    donecount.innerHTML = 0;
-    donelist.innerHTML = "";
+    $("#accordion").append(div);
   }
+}
 
-  var lis = todolist.querySelectorAll("ol li");
-  [].forEach.call(lis, function(li) {
-    //设置pc端拖拽
-    li.addEventListener("dragstart", handleDragStart, false);
-    li.addEventListener("dragover", handleDragOver, false);
-    li.addEventListener("drop", handleDrop, false);
+//回车添加todo事件
+function addEnter() {
+  var key = event.keyCode;
+  if (key == 13) {
+    var title = $("#todoTitle").val();
+    if (title == "") return;
+
+    addTodo({ title: title, detail: "" });
+    $("#todoTitle").val(""); //清空输入框
+    saveData();
+    refreshContent();
+  }
+}
+
+//保存数据
+function saveData() {
+  var json = [];
+  var groups = $("#accordion").find(".group");
+
+  groups.map((index, item) => {
+    var title = $(item)
+      .find("h3")
+      .eq(0)
+      .text();
+    var detail = $(item)
+      .find("textarea")
+      .eq(0)
+      .val();
+
+    json.push({ title: title, detail: detail });
   });
 
-  var spans=todolist.querySelectorAll("ol li span");
-  [].forEach.call(spans, function(span) {
-    //设置移动端拖拽
-    span.addEventListener("touchmove", handleMove, false);
-    span.addEventListener("touchstart", handleStart, false);
-    span.addEventListener("touchend", handleEnd, false);
-  });
-
-}
-
-
-var cleanFlag=true;
-//移动端移动时不断改变位置
-function handleMove(e){
-  if (e.stopPropagation) {
-    e.stopPropagation();
-  }
-  if(cleanFlag){
-    mobileBuff.style.top=e.changedTouches[0].clientY-2+"px";
-    mobileBuff.style.right=document.body.clientWidth-e.changedTouches[0].clientX-21+"px";
-    cleanFlag=false;
-    setTimeout(() => {
-      cleanFlag=true;
-    }, 50);
-  }
-}
-//开始移动时,记录拖拽的元素,并显示拖拽buff
-function handleStart(e){
-  if (e.stopPropagation) {
-    e.stopPropagation();
-  }
-
-  dragSrcElMobile=this;
-  
-  mobileBuff.style.top=e.changedTouches[0].clientY-2+"px";
-  mobileBuff.style.right=document.body.clientWidth-e.changedTouches[0].clientX-21+"px";
-  mobileBuff.style.display="block";//显示
-}
-//移动结束时,保存移动后的数据,并隐藏拖拽buff
-function handleEnd(e){
-  if (e.stopPropagation) {
-    e.stopPropagation();
-  }
-
-  mobileBuff.style.display="none";//隐藏
-  var span=document.elementFromPoint(e.changedTouches[0].clientX,e.changedTouches[0].clientY);
-  var index=span.getAttribute("index");
-  if(index==null){
-    return;
-  }
-
-  if (dragSrcElMobile != span) {
-    var srcId = dragSrcElMobile.parentElement.getElementsByTagName("p")[1].id;
-    var targetId = span.parentElement.getElementsByTagName("p")[1].id;
-
-    var buffList = [];
-    var srcIndexBuff = 0;
-    var targetIndexBuff = 0;
-
-    //找出src和target的Id
-    for (var i = 0; i < todoListData.length; i++) {
-      if (todoListData[i].id == srcId) {
-        srcIndexBuff = i;
-      } else if (todoListData[i].id == targetId) {
-        targetIndexBuff = i;
-      }
+  ajaxPostUtil("/saveTodoList", json, function(response) {
+    if (response.code == 1) {
+      layer.msg("保存成功", {
+        time: 500 //0.5s后自动关闭
+      });
+    } else {
+      layer.msg("保存失败,请稍后再试", {
+        time: 2000 //2s后自动关闭
+      });
     }
-
-    for (var i = 0; i < todoListData.length; i++) {
-      if (i == srcIndexBuff) {
-        continue;
-      } else if (i == targetIndexBuff) {
-        buffList.push(todoListData[srcIndexBuff]);
-        buffList.push(todoListData[targetIndexBuff]);
-      } else {
-        buffList.push(todoListData[i]);
-      }
-    }
-    todoListData = buffList;
-    //保存数据
-    saveData(todoListData, function() {
-      reloadHtml(todoListData);
-    });
-  }
-
-  return false;
-
-}
-
-
-// 清空已完成的任务
-function clearFinished() {
-  var dataBuff = [];
-  for (var i = 0; i < todoListData.length; i++) {
-    if (!todoListData[i].done) {
-      dataBuff.push(todoListData[i]);
-    }
-  }
-  //保存数据
-  todoListData = dataBuff;
-  saveData(todoListData, function() {
-    reloadHtml(todoListData);
   });
 }
 
@@ -400,74 +224,4 @@ function ajaxPostUtil(url, dataObj, handleFunction) {
       handleFunction(data); //获取到json字符串，还需解析
     }
   };
-}
-
-//设置PC端拖拽
-function handleDragStart(e) {
-  dragSrcEl = this;
-  e.dataTransfer.effectAllowed = "move";
-  e.dataTransfer.setData("text/html", this.innerHTML);
-}
-function handleDragOver(e) {
-  if (e.preventDefault) {
-    e.preventDefault();
-  }
-  e.dataTransfer.dropEffect = "move";
-
-  return false;
-}
-function handleDrop(e) {
-  if (e.stopPropagation) {
-    e.stopPropagation();
-  }
-  if (dragSrcEl != this) {
-    var srcId = dragSrcEl.children[1].children[1].id;
-    var targetId = this.children[1].children[1].id;
-
-    var buffList = [];
-    var srcIndexBuff = 0;
-    var targetIndexBuff = 0;
-
-    //找出src和target的Id
-    for (var i = 0; i < todoListData.length; i++) {
-      if (todoListData[i].id == srcId) {
-        srcIndexBuff = i;
-      } else if (todoListData[i].id == targetId) {
-        targetIndexBuff = i;
-      }
-    }
-
-    for (var i = 0; i < todoListData.length; i++) {
-      if (i == srcIndexBuff) {
-        continue;
-      } else if (i == targetIndexBuff) {
-        buffList.push(todoListData[srcIndexBuff]);
-        buffList.push(todoListData[targetIndexBuff]);
-      } else {
-        buffList.push(todoListData[i]);
-      }
-    }
-    todoListData = buffList;
-    //保存数据
-    saveData(todoListData, function() {
-      reloadHtml(todoListData);
-    });
-  }
-  return false;
-}
-
-//判断是否是PC端
-function IsPC() {
-  var userAgentInfo = navigator.userAgent;
-  var Agents = ["Android", "iPhone",
-     "SymbianOS", "Windows Phone",
-     "iPad", "iPod"];
-  var flag = true;
-  for (var v = 0; v < Agents.length; v++) {
-     if (userAgentInfo.indexOf(Agents[v]) > 0) {
-        flag = false;
-        break;
-     }
-  }
-  return flag;
 }
