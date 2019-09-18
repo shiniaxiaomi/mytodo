@@ -59,6 +59,20 @@ textarea {
   border: none;
 }
 
+::-webkit-scrollbar {
+  width: 9px;
+  height: 8px;
+  background-color: rgba(0, 0, 0, 0);
+  position: absolute;
+}
+::-webkit-scrollbar-corner {
+  background: 0 0;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  background-clip: padding-box;
+}
+
 .btnGroup {
   flex-shrink: 1;
   flex-grow: 0;
@@ -92,6 +106,9 @@ textarea {
 .header {
   background-color: rgba(47, 47, 47, 0.98);
   margin-bottom: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 10000;
 }
 
 .header-top {
