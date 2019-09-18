@@ -1,12 +1,15 @@
+
+var isPC = IsPC(); //判断是否是PC端
+
 $(function() {
   var todoList = []; //保存todo数据
-
+  
   $("#accordion")
     //设置排序
     .sortable({
       axis: "y", //只能在y轴上拖拽
       handle: "h3", //指定手柄为h3元素
-      delay: 235, //设置延迟,防误触
+      delay: 200, //设置延迟,防误触
       stop: function(event, ui) {
         // 当排序时，IE 不能注册 blur，所以触发 focusout 处理程序来移除 .ui-state-focus
         ui.item.children("h3").triggerHandler("focusout");
@@ -22,10 +25,6 @@ $(function() {
       collapsible: true,
       heightStyle: "content", //每个面板的高度取决于它的内容
       active: false, //默认全部关闭
-      beforeActivate: function(event, ui) {
-        alert("222")
-        
-      },
     });
 
   //先尝试自动登入
@@ -40,7 +39,7 @@ $(function() {
     }
   });
 
-  $("#todoTitle").focus(); //输入框自动获取焦点
+  // $("#todoTitle").focus(); //输入框自动获取焦点
 });
 
 //登入
@@ -80,7 +79,13 @@ function initData() {
 //添加一个todo(isAppend:true表示加在最后面,false表示加在最前面,默认加在最前面)
 function addTodo(item, isAppend) {
   var div = $("<div class='group'></div>");
-  var h3 = $("<h3>" + item.title + "</h3>");
+  var h3 =undefined;
+  if(isPC){
+    h3 = $("<h3>" + item.title + "</h3>");
+  }else{
+    h3 = $("<h3>" + item.title + "<button style='float:right' onclick='console.log(111)'>展开</button></h3>");
+  }
+  
   var content = $("<div></div>");
   var textarea = $("<textarea>" + item.detail + "</textarea>");
 
@@ -228,4 +233,27 @@ function ajaxPostUtil(url, dataObj, handleFunction) {
       handleFunction(data); //获取到json字符串，还需解析
     }
   };
+
 }
+
+//判断是否是PC端
+function IsPC() {
+  var userAgentInfo = navigator.userAgent;
+  var Agents = [
+    "Android",
+    "iPhone",
+    "SymbianOS",
+    "Windows Phone",
+    "iPad",
+    "iPod"
+  ];
+  var flag = true;
+  for (var v = 0; v < Agents.length; v++) {
+    if (userAgentInfo.indexOf(Agents[v]) > 0) {
+      flag = false;
+      break;
+    }
+  }
+  return flag;
+}
+
