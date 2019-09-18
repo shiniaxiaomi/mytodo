@@ -6,18 +6,17 @@ $(function() {
   
   
     //设置排序
-    // $("#accordion").sortable({
-    //   axis: "y", //只能在y轴上拖拽
-    //   // containment: "parent", //移动的窗口是否只是针对父级元素
-    //   handle: "h3", //指定手柄为h3元素
-    //   delay: 200, //设置延迟,防误触
-    //   stop: function(event, ui) {
-    //     // 当排序时，IE 不能注册 blur，所以触发 focusout 处理程序来移除 .ui-state-focus
-    //     ui.item.children("h3").triggerHandler("focusout");
+    $("#accordion").sortable({
+      axis: "y", //只能在y轴上拖拽
+      handle: "h3", //指定手柄为h3元素
+      delay: 200, //设置延迟,防误触
+      stop: function(event, ui) {
+        // 当排序时，IE 不能注册 blur，所以触发 focusout 处理程序来移除 .ui-state-focus
+        // ui.item.children("h3").triggerHandler("focusout");
 
-    //     saveData(); //排序结束时,保存数据
-    //   }
-    // })
+        saveData(); //排序结束时,保存数据
+      }
+    })
     //设置面板内容
     $("#accordion").accordion({
       header: "> div > h3",
