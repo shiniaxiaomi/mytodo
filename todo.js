@@ -2,6 +2,18 @@ $(function() {
   var todoList = []; //保存todo数据
 
   $("#accordion")
+    //设置排序
+    .sortable({
+      axis: "y", //只能在y轴上拖拽
+      handle: "h3", //指定手柄为h3元素
+      delay: 235, //设置延迟,防误触
+      stop: function(event, ui) {
+        // 当排序时，IE 不能注册 blur，所以触发 focusout 处理程序来移除 .ui-state-focus
+        ui.item.children("h3").triggerHandler("focusout");
+
+        saveData(); //排序结束时,保存数据
+      }
+    })
     //设置面板内容
     .accordion({
       header: "> div > h3",
@@ -9,19 +21,11 @@ $(function() {
       animate: 150, //动画的持续时间
       collapsible: true,
       heightStyle: "content", //每个面板的高度取决于它的内容
-      active: false //默认全部关闭
-    })
-    //设置排序
-    .sortable({
-      axis: "y", //只能在y轴上拖拽
-      handle: "h3", //指定手柄为h3元素
-      delay: 2000, //设置延迟,防误触
-      stop: function(event, ui) {
-        // 当排序时，IE 不能注册 blur，所以触发 focusout 处理程序来移除 .ui-state-focus
-        ui.item.children("h3").triggerHandler("focusout");
-
-        saveData(); //排序结束时,保存数据
-      }
+      active: false, //默认全部关闭
+      beforeActivate: function(event, ui) {
+        alert("222")
+        
+      },
     });
 
   //先尝试自动登入
