@@ -4,21 +4,22 @@ var isPC = IsPC(); //判断是否是PC端
 $(function() {
   var todoList = []; //保存todo数据
   
-  $("#accordion")
+  
     //设置排序
-    .sortable({
-      axis: "y", //只能在y轴上拖拽
-      handle: "h3", //指定手柄为h3元素
-      delay: 200, //设置延迟,防误触
-      stop: function(event, ui) {
-        // 当排序时，IE 不能注册 blur，所以触发 focusout 处理程序来移除 .ui-state-focus
-        ui.item.children("h3").triggerHandler("focusout");
+    // $("#accordion").sortable({
+    //   axis: "y", //只能在y轴上拖拽
+    //   // containment: "parent", //移动的窗口是否只是针对父级元素
+    //   handle: "h3", //指定手柄为h3元素
+    //   delay: 200, //设置延迟,防误触
+    //   stop: function(event, ui) {
+    //     // 当排序时，IE 不能注册 blur，所以触发 focusout 处理程序来移除 .ui-state-focus
+    //     ui.item.children("h3").triggerHandler("focusout");
 
-        saveData(); //排序结束时,保存数据
-      }
-    })
+    //     saveData(); //排序结束时,保存数据
+    //   }
+    // })
     //设置面板内容
-    .accordion({
+    $("#accordion").accordion({
       header: "> div > h3",
       animate: "easeInOutCubic",
       animate: 150, //动画的持续时间
@@ -84,11 +85,11 @@ function addTodo(item, isAppend) {
     h3 = $("<h3>" + item.title + "</h3>");
   }else{
     h3 = $("<h3>" + item.title + "</h3>");
-    var toggleButton=$("<button style='float:right'>展开</button>");
+    var toggleButton=$("<button >展开</btton>");
     toggleButton.click(function(){
-      alert("sdfdsf")
+      // alert("sdfdsf")
     })
-    h3.append(toggleButton)
+    div.prepend(toggleButton)
   }
   
   var content = $("<div></div>");
