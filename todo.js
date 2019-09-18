@@ -83,7 +83,12 @@ function addTodo(item, isAppend) {
   if(isPC){
     h3 = $("<h3>" + item.title + "</h3>");
   }else{
-    h3 = $("<h3>" + item.title + "<button style='float:right' onclick='console.log(111)'>展开</button></h3>");
+    h3 = $("<h3>" + item.title + "</h3>");
+    var toggleButton=$("<button style='float:right'>展开</button>");
+    toggleButton.click(function(){
+      alert("sdfdsf")
+    })
+    h3.append(toggleButton)
   }
   
   var content = $("<div></div>");
