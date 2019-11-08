@@ -7,6 +7,8 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false });
 const fs = require("fs");
 var app = express(); //获取app对象
 
+var targetDir="./";
+
 //设置静态资源路径(将html生成路径设置为静态资源路径)
 app.use("", express.static("./"));
 
@@ -33,7 +35,7 @@ var todoListData = readJson(); //读取json数据
 
 //返回首页
 app.get("/", function(req, res) {
-  res.sendFile(path.join(__dirname, "todo.html"));
+  res.sendFile(path.join(targetDir, "todo.html"));
 });
 
 app.post("/login", bodyParser.json(), function(req, res) {
@@ -88,7 +90,7 @@ app.post("/saveTodoList", bodyParser.json(), function(req, res) {
 
 //读取json数据
 function readJson() {
-  var targetPath = path.join(__dirname, "todo.json");
+  var targetPath = path.join(targetDir, "todo.json");
   //现将json文件读出来
   var data = fs.readFileSync(targetPath);
   var buff = data.toString(); //将二进制的数据转换为字符串
@@ -102,7 +104,7 @@ function readJson() {
 
 //写入json数据
 function writeJson(params) {
-  var targetPath = path.join(__dirname, "todo.json");
+  var targetPath = path.join(targetDir, "todo.json");
 
   var str = JSON.stringify(params); //因为nodejs的写入文件只认识字符串或者二进制数，所以把json对象转换成字符串重新写入json文件中
   fs.writeFile(targetPath, str, function(err) {
