@@ -7,7 +7,7 @@ var urlencodedParser = bodyParser.urlencoded({ extended: false });
 const fs = require("fs");
 var app = express(); //获取app对象
 
-var targetDir="./";
+var targetDir="/root/code/mytodo";
 
 //设置静态资源路径(将html生成路径设置为静态资源路径)
 app.use("", express.static("./"));
