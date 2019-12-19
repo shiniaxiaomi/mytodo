@@ -1,13 +1,22 @@
 var express = require("express"); //导入express模块
 const path = require("path");
+const os = require("os");
 var bodyParser = require("body-parser");
 // 创建 application/x-www-form-urlencoded 编码解析
 var urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 const fs = require("fs");
 var app = express(); //获取app对象
+var targetDir="";
 
-var targetDir="/root/code/mytodo";
+//本地测试
+if (os.type() != "Darwin") {
+  //线上
+  targetDir = "/root/code/mytodo";
+} else {
+  targetDir = "/Users/yingjie.lu/Code/mytodo";
+}
+
 
 //设置静态资源路径(将html生成路径设置为静态资源路径)
 app.use("", express.static("./"));
